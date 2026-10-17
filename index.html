@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TBACK5 — Run HTML</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#0f1724; --accent:#3b82f6; --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:
+      linear-gradient(180deg,#061226 0%, #071827 60%);color:#e6eef8;-webkit-font-smoothing:antialiased}
+    .wrap{max-width:1200px;margin:24px auto;padding:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));border-radius:12px;display:grid;grid-template-columns: 1fr 520px;gap:16px;min-height:72vh;box-shadow:0 12px 40px rgba(2,6,23,0.6)}
+    header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .brand{font-weight:800;font-size:28px;letter-spacing:2px}
+    .subtitle{font-size:13px;color:var(--muted)}
+    /* left */
+    .left{padding:12px;display:flex;flex-direction:column;gap:12px}
+    .editorCard{background:var(--card);border-radius:10px;padding:12px;box-shadow: inset 0 1px 0 rgba(255,255,255,0.02)}
+    textarea{width:100%;height:360px;background:transparent;border:1px solid rgba(255,255,255,0.04);outline:none;color:inherit;padding:12px;border-radius:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .btn{background:linear-gradient(180deg,var(--accent),#2563eb);border:0;padding:10px 14px;border-radius:10px;color:white;font-weight:700;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+    .small{font-size:13px;color:var(--muted)}
+    /* right */
+    .right{padding:12px;display:flex;flex-direction:column;gap:12px;position:relative}
+    .previewCard{background:var(--card);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:420px}
+    .previewToolbar{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .previewArea{flex:1;background:var(--glass);border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:center}
+    .frameWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+    iframe.preview{width:100%;height:100%;border:1px solid rgba(255,255,255,0.06);border-radius:6px;background:white}
+    /* phone mockup */
+    .phone{width:360px;height:640px;border-radius:28px;border:12px solid #111827;background:white;box-shadow:0 12px 40px rgba(2,6,23,0.6);overflow:hidden;display:flex;flex-direction:column}
+    .phone .topbar{height:36px;background:#00000011;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+    /* settings */
+    .settingsBtn{position:absolute;right:12px;top:12px}
+    .settingsPanel{position:absolute;right:12px;top:56px;background:var(--card);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);width:180px;box-shadow:0 10px 30px rgba(2,6,23,0.6);display:none;z-index:30}
+    .settingsPanel.show{display:block}
+    .settingsPanel .row{display:flex;gap:8px;margin-bottom:8px}
+    .hint{font-size:13px;color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    /* responsive */
+    @media (max-width:1100px){
+      .wrap{grid-template-columns:1fr;min-height:88vh}
+      .right{order:-1}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="TBACK5 runner">
+    <header>
+      <div>
+        <div class="brand">TBACK5</div>
+        <div class="subtitle">Dán code vào ô bên dưới, nhấn runcode để tạo file index.html và chạy</div>
+      </div>
+      <div class="small">Nhớ: nội dung bạn dán là mã HTML/JS/CSS — chạy cục bộ trên trình duyệt của bạn</div>
+    </header>
+
+    <section class="left" aria-label="Editor">
+      <div class="editorCard" id="editorCard">
+        <textarea id="codeInput" placeholder="Paste code" aria-label="Paste code"></textarea>
+        <div class="controls">
+          <button id="runBtn" class="btn" disabled>runcode</button>
+          <button id="openNewBtn" class="btn ghost" style="display:none">Open in new tab</button>
+          <button id="downloadBtn" class="btn ghost" style="display:none">Download index.html</button>
+          <div style="flex:1"></div>
+          <button id="clearBtn" class="btn ghost">Clear</button>
+        </div>
+        <div class="hint" style="margin-top:8px">Ghi chú: Bạn có thể dán toàn bộ file HTML (ứng dụng, trò chơi, demo). Khi nhấn runcode, bản preview sẽ được tạo.</div>
+      </div>
+    </section>
+
+    <aside class="right" aria-label="Preview & Settings">
+      <div class="previewCard">
+        <div class="previewToolbar">
+          <div><strong>Preview</strong> <span class="small" id="sizeLabel"> (PC)</span></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="openSeparate" class="btn ghost" title="Mở nội dung trong tab mới">Mở tab</button>
+            <button class="btn settingsBtn" id="settingsToggle">Cài đặt</button>
+          </div>
+        </div>
+
+        <div class="previewArea">
+          <div class="frameWrap" id="frameWrap">
+            <iframe id="previewFrame" class="preview" sandbox="allow-scripts allow-same-origin"></iframe>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div class="small">Sau khi runcode, bạn có thể tải file hoặc mở trong tab mới.</div>
+          <div class="actions" id="postActions" style="display:none">
+            <button id="refreshPreview" class="btn ghost">Refresh</button>
+          </div>
+        </div>
+
+        <div class="settingsPanel" id="settingsPanel" role="dialog" aria-hidden="true">
+          <div class="row"><div class="small">Chọn chế độ hiển thị:</div></div>
+          <div class="row">
+            <button id="mobileBtn" class="btn ghost">Mobile</button>
+            <button id="pcBtn" class="btn">PC</button>
+          </div>
+          <div class="row"><button id="toggleSandbox" class="btn ghost">Toggle sandbox</button></div>
+          <div class="row hint">Mobile: khung điện thoại; PC: full width preview.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    (function(){
+      const codeInput = document.getElementById('codeInput');
+      const runBtn = document.getElementById('runBtn');
+      const previewFrame = document.getElementById('previewFrame');
+      const openNewBtn = document.getElementById('openNewBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const openSeparate = document.getElementById('openSeparate');
+      const refreshPreview = document.getElementById('refreshPreview');
+      const settingsToggle = document.getElementById('settingsToggle');
+      const settingsPanel = document.getElementById('settingsPanel');
+      const mobileBtn = document.getElementById('mobileBtn');
+      const pcBtn = document.getElementById('pcBtn');
+      const frameWrap = document.getElementById('frameWrap');
+      const postActions = document.getElementById('postActions');
+      const sizeLabel = document.getElementById('sizeLabel');
+      const toggleSandbox = document.getElementById('toggleSandbox');
+      const clearBtn = document.getElementById('clearBtn');
+
+      let lastBlobUrl = null;
+      let sandboxEnabled = true;
+
+      // enable run button when there is code
+      codeInput.addEventListener('input', () => {
+        const has = codeInput.value.trim().length > 0;
+        runBtn.disabled = !has;
+        if(!has){
+          openNewBtn.style.display = 'none';
+          downloadBtn.style.display = 'none';
+          postActions.style.display = 'none';
+        }
+      });
+
+      function revokeUrl(){
+        if(lastBlobUrl){
+          try{ URL.revokeObjectURL(lastBlobUrl); } catch(e){}
+          lastBlobUrl = null;
+        }
+      }
+
+      function createBlobUrl(content){
+        revokeUrl();
+        const blob = new Blob([content], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        lastBlobUrl = url;
+        return url;
+      }
+
+      function setPreview(url){
+        previewFrame.src = url;
+        openNewBtn.style.display = 'inline-block';
+        downloadBtn.style.display = 'inline-block';
+        postActions.style.display = 'flex';
+      }
+
+      runBtn.addEventListener('click', () => {
+        const code = codeInput.value;
+        if(!code.trim()) return;
+        const url = createBlobUrl(code);
+        setPreview(url);
+        // by default do not auto-download, but create download link
+        downloadBtn.onclick = () => {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'index.html';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        };
+        openNewBtn.onclick = () => {
+          // open in new tab
+          window.open(url, '_blank');
+        };
+        openSeparate.onclick = () => window.open(url, '_blank');
+        refreshPreview.onclick = () => {
+          // reload iframe
+          previewFrame.src = '';
+          setTimeout(()=> previewFrame.src = url, 50);
+        };
+      });
+
+      // settings panel toggle
+      settingsToggle.addEventListener('click', () => {
+        const show = !settingsPanel.classList.contains('show');
+        settingsPanel.classList.toggle('show', show);
+        settingsPanel.setAttribute('aria-hidden', String(!show));
+      });
+
+      // mobile / pc actions
+      mobileBtn.addEventListener('click', () => {
+        // set phone mockup
+        frameWrap.innerHTML = '';
+        const phone = document.createElement('div');
+        phone.className = 'phone';
+        const topbar = document.createElement('div');
+        topbar.className = 'topbar';
+        topbar.textContent = 'Mobile preview';
+        phone.appendChild(topbar);
+        const innerFrame = document.createElement('iframe');
+        innerFrame.id = 'previewFrame';
+        innerFrame.className = 'preview';
+        innerFrame.style.width = '100%';
+        innerFrame.style.height = '100%';
+        innerFrame.style.border = '0';
+        innerFrame.sandbox = sandboxEnabled ? 'allow-scripts allow-same-origin' : '';
+        phone.appendChild(innerFrame);
+        frameWrap.appendChild(phone);
+        sizeLabel.textContent = ' (Mobile)';
+        // if we have a blob url, set it
+        if(lastBlobUrl) innerFrame.src = lastBlobUrl;
+      });
+
+      pcBtn.addEventListener('click', () => {
+        // restore full width iframe
+        frameWrap.innerHTML = '';
+        const iframe = document.createElement('iframe');
+        iframe.id = 'previewFrame';
+        iframe.className = 'preview';
+        iframe.sandbox = sandboxEnabled ? 'allow-scripts allow-same-origin' : '';
+        frameWrap.appendChild(iframe);
+        sizeLabel.textContent = ' (PC)';
+        if(lastBlobUrl) iframe.src = lastBlobUrl;
+      });
+
+      // toggle sandbox attribute (allow scripts allowed)
+      toggleSandbox.addEventListener('click', () => {
+        sandboxEnabled = !sandboxEnabled;
+        // update current iframe(s)
+        const current = document.querySelectorAll('#frameWrap iframe');
+        current.forEach(f => {
+          if(sandboxEnabled) f.setAttribute('sandbox','allow-scripts allow-same-origin');
+          else f.removeAttribute('sandbox');
+        });
+        toggleSandbox.textContent = sandboxEnabled ? 'Toggle sandbox' : 'Sandbox OFF';
+      });
+
+      // initial state - PC iframe exists
+      (function init(){
+        // ensure previewFrame has sandbox attribute
+        const pf = document.getElementById('previewFrame');
+        if(pf) pf.setAttribute('sandbox','allow-scripts allow-same-origin');
+      })();
+
+      // clear
+      clearBtn.addEventListener('click', () => {
+        if(confirm('Xoá nội dung ô nhập?')) {
+          codeInput.value = '';
+          runBtn.disabled = true;
+          openNewBtn.style.display = 'none';
+          downloadBtn.style.display = 'none';
+          postActions.style.display = 'none';
+          // clear preview
+          const pf = document.querySelectorAll('#frameWrap iframe');
+          pf.forEach(i => i.src = 'about:blank');
+          revokeUrl();
+        }
+      });
+
+      // cleanup on unload
+      window.addEventListener('beforeunload', () => revokeUrl());
+    })();
+  </script>
+</body>
+  </html>
